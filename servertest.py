@@ -5,7 +5,7 @@ import room
 
 READ_BUFFER = 4096
 
-host = sys.argv[1]
+#host = sys.argv[1]
 listen_sock = room.create_socket(('', room.S_PORT))
 
 hall = Room()

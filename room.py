@@ -56,25 +56,26 @@ class Room:
                JOIN_ID_NO+1
 	       join_ids[CLIENT_NAME] = JOIN_ID_NO
 
-	    if CHATROOM in rooms 
-		 for CLIENT_NAME in room_members.values() 
-		     if CHATROOM in room_members.keys()
+	    if CHATROOM in rooms:
+	       for CLIENT_NAME in room_members.values():
+		   if CHATROOM in room_members.keys():
+
+		      CODE = "101"              	   
+                      DESC = "ALREADY IN CHATROOM, SEND MESSAGES"
+	              error = b'ERROR CODE: {0}\nERROR DESCRIPTION: {1}\n'.format(CODE, DESC)
+	  
+	              player.socket.sendall(error)
 
 	    elif CHATROOM not in rooms:
-               rooms.append(CHATROOM)
- 	       global ROOM_REF_NO
-               ROOM_REF_NO+1
-	       room_refs[CHATROOM] = ROOM_REF_NO
+                 rooms.append(CHATROOM)
+ 	         global ROOM_REF_NO
+                 ROOM_REF_NO+1
+	         room_refs[CHATROOM] = ROOM_REF_NO
 	       
-               confirmation = b'JOINED_CHATROOM: {0}\nSERVER_IP: {1}\nPORT: {2}\nROOM_REF: {3}\nJOIN_ID: {4}\n \n'.format(CHATROOM, str(12343), C_PORT, ROOM_REF_NO, JOIN_ID_NO)
+                 confirmation = b'JOINED_CHATROOM: {0}\nSERVER_IP: {1}\nPORT: {2}\nROOM_REF: {3}\nJOIN_ID: {4}\n \n'.format(CHATROOM, str(12343), C_PORT, ROOM_REF_NO, JOIN_ID_NO)
 	
-	       player.socket.sendall(confirmation)	       
-            else:
-               CODE = "101"              	   
-               DESC = "ALREADY IN CHATROOM, SEND MESSAGES"
-	       error = b'ERROR CODE: {0}\nERROR DESCRIPTION: {1}\n'.format(CODE, DESC)
-	  
-	       player.socket.sendall(error)          
+	         player.socket.sendall(confirmation)	       
+       
 
 	elif "MESSAGE:" in msg:
 
