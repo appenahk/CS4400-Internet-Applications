@@ -1,0 +1,26 @@
+#!/usr/bin/python
+import socket
+import select
+import sys
+
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+IP_address = 'localhost'
+Port = 60040
+server.connect((IP_address, Port))
+
+while True:
+    sockets_list = [sys.stdin, server]
+    read_sockets,write_socket, error_socket = select.select(sockets_list, [], [])
+    for socks in read_sockets:
+        if socks == server:
+            message = socks.recv(2048)
+	    #message = message.decode
+            print message
+        else:
+            message = sys.stdin.readline()
+	    confirmation = b'JOIN_CHATROOM: {0}\nSERVER_IP: {1}\nPORT: {2}\nROOM_REF: {3}\n \n'.format(message, 1213, Port, "Steve")
+	       
+            server.send(confirmation)
+
+            sys.stdout.flush()
+server.close()
