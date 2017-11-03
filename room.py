@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import select, socket, sys, pdb
+import select, socket, sys, pdb, threading
 from thread import *
 
 MAX_CLIENTS = 30
@@ -11,7 +11,7 @@ room_members = {}
 rooms = []
 room_refs = {}
 join_ids = {}
-memlist = []
+socketconns = {}
 
 def create_socket(address):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -22,20 +22,30 @@ def create_socket(address):
     return s
 
 class Room:
-
+	
     def __init__(self):
         self.clients = []
         self.rooms = []
 	self.room_refs = {}
 	self.join_ids = {}
 	self.room_members = {}
-    
-    def broadcast(self, client, ref, chat):
+
+     '''def client(self):
+        while True:
+            (clientSocket, client_address) = self.serverSocket.accept()   # Establish the connection
+            p = threading.Thread(name=self._getClientName(client_address), target=self.client_thread, args=(clientSocket, client_address))
+            p.setDaemon(True)
+            p.start()
+
+    def _getClientName(self, cli_addr):
+        return "Client"'''
+
+    def broadcast(self, player, client, ref, chat):
 	msg = b'CHAT: {0}\nCLIENT_NAME: {1}\nMESSAGE: {2}\n\n'.format(ref, client, chat)
-chatroom = room_refs[
-        for chatroom in room_ref.values():
-	    if client in room_members.keys():
-               client.socket.sendall(msg)
+	msg_chatroom = room_refs[ref]
+        if room_members[client] == msg_chatroom:
+	    for player, msg_chatroom in socketconn.items():               
+		player.socket.sendall(msg)
 
     def remove_player(self, client, chatroom):
        
@@ -60,8 +70,7 @@ chatroom = room_refs[
 	    if CHATROOM in rooms:
 	       if room_members[CLIENT_NAME] == CHATROOM:
 	       #for CLIENT_NAME in room_members.values():
-		 #  if CHATROOM is room_members.keys():
-			
+		 #  if CHATROOM is room_members.keys():			
 		      CODE = "101"              	   
                       DESC = "ALREADY IN CHATROOM, SEND MESSAGES"
 	              error = b'ERROR CODE: {0}\nERROR DESCRIPTION: {1}\n'.format(CODE, DESC)
@@ -71,10 +80,11 @@ chatroom = room_refs[
 	    elif CHATROOM not in rooms:
                  rooms.append(CHATROOM)
 		 room_members[CLIENT_NAME] = CHATROOM
+		 socketconn[player] = CHATROOM
  	         global ROOM_REF_NO
                  ROOM_REF_NO+1
 	         room_refs[ROOM_REF_NO] = CHATROOM
-	       
+	         socketconn.append(player)
                  confirmation = b'JOINED_CHATROOM: {0}\nSERVER_IP: {1}\nPORT: {2}\nROOM_REF: {3}\nJOIN_ID: {4}\n \n'.format(CHATROOM, str(12343), C_PORT, ROOM_REF_NO, JOIN_ID_NO)
 	
 	         player.socket.sendall(confirmation)	       
@@ -89,7 +99,7 @@ chatroom = room_refs[
 
 	     if len(message.split(": ")) >= 2: # error check
 	        if CLIENT_NAME in room_members.keys(): # switching?	            
-	           self.broadcast(REF, CLIENT_NAME, CHAT)
+	           self.broadcast(player, REF, CLIENT_NAME, CHAT)
 	              
 	        else: # switch
 	           CODE = "102"              	   
