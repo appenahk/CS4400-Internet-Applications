@@ -6,12 +6,14 @@ MAX_CLIENTS = 30
 S_PORT = 60040
 JOIN_ID_NO = 1
 ROOM_REF_NO = 200
+
 clients = []
 room_members = {}
 rooms = []
 room_refs = {}
 join_ids = {}
 socketconns = {}
+users = []
 
 def create_socket(address):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -43,14 +45,14 @@ class Room:
     def broadcast(self, player, client, ref, chat):
 	msg = b'CHAT: {0}\nCLIENT_NAME: {1}\nMESSAGE: {2}\n\n'.format(ref, client, chat)
 	msg_chatroom = room_refs[ref]
-        if room_members[client] == msg_chatroom:
-	    for player, msg_chatroom in socketconn.items():               
-		player.socket.sendall(msg)
+        
+        for user in room_members[msg_chatroom].users:               
+	    user.socket.sendall(msg)
 
     def remove_player(self, client, chatroom):
        
-	if room_members[client] == chatroom:
-           del room_members[client]
+	if client in room_members[chatroom].users:
+           room_members[chatroom].users.remove(client)
         
     def client_thread(self, player, msg):
 		
@@ -68,18 +70,17 @@ class Room:
 	       join_ids[JOIN_ID_NO] = CLIENT_NAME
 
 	    if CHATROOM in rooms:
-	       if room_members[CLIENT_NAME] == CHATROOM:
-	       #for CLIENT_NAME in room_members.values():
-		 #  if CHATROOM is room_members.keys():			
-		      CODE = "101"              	   
-                      DESC = "ALREADY IN CHATROOM, SEND MESSAGES"
-	              error = b'ERROR CODE: {0}\nERROR DESCRIPTION: {1}\n'.format(CODE, DESC)
+	       if CLIENT_NAME in room_members[CHATROOM].users
+	      		
+		  CODE = "101"              	   
+                  DESC = "ALREADY IN CHATROOM, SEND MESSAGES"
+	          error = b'ERROR CODE: {0}\nERROR DESCRIPTION: {1}\n'.format(CODE, DESC)
 	  
-	              player.socket.sendall(error)
+	          player.socket.sendall(error)
 
 	    elif CHATROOM not in rooms:
                  rooms.append(CHATROOM)
-		 room_members[CLIENT_NAME] = CHATROOM
+		 room_members[CHATROOM].users.append(CLIENT_NAME)
 		 socketconn[player] = CHATROOM
  	         global ROOM_REF_NO
                  ROOM_REF_NO+1
@@ -96,15 +97,17 @@ class Room:
 	     JOIN_ID = message[1].split(": ")[1]
 	     CLIENT_NAME =  message[2].split(": ")[1]           
 	     CHAT = message[2].split(": ")[1]
+	     croom = room_refs[REF]
 
 	     if len(message.split(": ")) >= 2: # error check
-	        if CLIENT_NAME in room_members.keys(): # switching?	            
+	        if CLIENT_NAME in room_members[msg_chatroom].users: # switching?	            
 	           self.broadcast(player, REF, CLIENT_NAME, CHAT)
 	              
 	        else: # switch
 	           CODE = "102"              	   
                    DESC = "NOT JOINED CHATROOM"
 		   error = b'ERROR CODE: {0}\nERROR DESCRIPTION: {1}\n'.format(CODE, DESC)
+		   player.socket.sendall(error)
 	         		
 	elif "LEAVE_CHATROOM:" in msg:
 
