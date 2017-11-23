@@ -18,7 +18,7 @@ while True:
             print message
         else:
             message = sys.stdin.readline()
-	    confirmation = b'JOIN_CHATROOM: {0}\nSERVER_IP: {1}\nPORT: {2}\nROOM_REF: {3}\n \n'.format(message, 1213, Port, "Steve")
+	    confirmation = b'HELO\n'
 	       
             server.send(confirmation)
 
