@@ -4,7 +4,7 @@ from room import Room, Client
 import room
 
 READ_BUFFER = 4096
-host = '134.226.44.154'
+host = '134.226.44.146'
 #host = sys.argv[1]
 listen_sock = room.create_socket((host, room.S_PORT))
 
