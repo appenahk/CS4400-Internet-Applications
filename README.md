@@ -2,7 +2,7 @@
 
 This repository contains assignments for Trinity College Dublin's CS4400: Internet Applications 2017.
 
-##Assignments
+## Assignments
 
 
 ### Assignment One
