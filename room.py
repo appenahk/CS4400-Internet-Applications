@@ -137,7 +137,7 @@ class Room:
 	      player.socket.sendall(goner)
 	      
 	      leave_msg = ('CHAT: ' + str(refno) + '\nCLIENT_NAME: ' + str(CLIENT_NAME) + '\nMESSAGE: ' + str(CLIENT_NAME) + ' has left this chatroom.\n\n')
-	      
+	      player.socket.sendall(leave_msg)
 	      broadcast(leave_msg, refno)
               self.remove_player(refno, player)
 
