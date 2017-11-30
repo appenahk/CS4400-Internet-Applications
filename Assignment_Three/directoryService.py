@@ -1,26 +1,36 @@
-import socketserver
+#!/usr/bin/python
+import SocketServer
 import json
 import uuid
 import random
 
-HOST = "localhost"#"192.168.0.1"
-PORT = 8080
+HOST = "localhost"
+PORT = 44444
 
 FILE_SERVERS = {}
-FILE_DETAILS = {} #holds all details for files - id,address,port and timestamps
+FILES = {} #holds all details for files - id,address,port and timestamps
 
 def fileExists(filename):
-    return filename in FILE_DETAILS
+    return filename in FILES
 
-def getFileDetails(filename):
+def getFile(filename):
     if fileExists(filename):
-        return FILE_DETAILS[filename]
+        return FILES[filename]
     else:
         return None
 
-def addFileDetails(filename, nodeID, address, port, timestamp):
-    FILE_DETAILS['filename'] = {"nodeID": nodeID, "address": address, "port": port, "timestamp": timestamp}
+def addFile(filename, nodeID, address, port, timestamp):
+    FILES['filename'] = {"nodeID": nodeID, "address": address, "port": port, "timestamp": timestamp}
 
-def deleteFileDetails(filename):
-    del FILE_DETAILS[filename]
+def deleteFile(filename):
+    del FILES[filename]
 
+class ThreadedHandler(SocketServer.BaseRequestHandler):
+
+      def handle(self):
+	  msg = self.request.recv(1024)
+	        
+	  msg = json.loads(msg)
+	  requestType = msg['request']
+
+	 

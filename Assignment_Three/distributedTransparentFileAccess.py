@@ -4,8 +4,8 @@ import json
 import os
 
 NODEID = ""
-HOST = "localhost"#"192.168.0.1"
-PORT = 0 # automatically assigned
+HOST = "localhost"
+PORT = 0
 
 MASTER_ADDRESS = "localhost"#"127.0.0.1"
 MASTER_PORT = 8080
@@ -31,6 +31,30 @@ def dfsWrite(filename, data):
     file_handle = open(path, "w+")
     file_handle.write(data)
 
+class ThreadHandler(SocketServer.BaseRequestHandler):
+      def handle(self):
+          req = self.request.recv(1024)
+          print req
+
+          msg = json.loads(req)
+          requestType = msg['request']
+          response = ""
+
+          if requestType == "open":
+             exists = dfsOpen(msg['filename'])
+             response = json.dumps({"response": requestType, "filename": msg['filename'], "isFile": exists)
+          elif requestType == "close":
+               response = json.dumps({"response": requestType, "filename": msg['filename'])
+          elif requestType == "read":
+               data = dfsRead(msg['filename'])
+               response = json.dumps({"response": requestType,"filename": msg['filename'], "data": data})
+          elif requestType == "write":
+               dfsWrite(msg['filename'], msg['data'])
+               response = json.dumps({"response": requestType,"filename": msg['filename'], "uuid": NODEID})
+       	  else:
+               response = json.dumps({"response": "Error", "error": requestType+" is not a valid request")
+
+          self.request.sendall(response)
 class FileServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     pass
 
