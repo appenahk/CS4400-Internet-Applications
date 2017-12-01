@@ -29,7 +29,7 @@ def dfsRead(filename):
     return data
 def dfsWrite(filename, data):
     path = os.path.join(FILE_PATH, filename)
-    file_handle = open(path, "w+")
+    file_handle = open(path, "a")
     file_handle.write(data)
 
 class ThreadHandler(SocketServer.BaseRequestHandler):
