@@ -1,4 +1,5 @@
-import socketserver
+#!/usr/bin/python
+import SocketServer
 import socket
 import json
 import os
@@ -7,25 +8,25 @@ NODEID = ""
 HOST = "localhost"
 PORT = 0
 
-MASTER_ADDRESS = "localhost"#"127.0.0.1"
-MASTER_PORT = 8080
+MAIN_ADDRESS = "localhost"#"127.0.0.1"
+MAIN_PORT = 44444
 
 CURRENT_DIRECTORY = os.getcwd()
 FOLDER_NAME = "testfiles"              #directory to store files
-FILE_PATH = os.path.join(CURRENT_DIRECTORY, BUCKET_NAME)
+FILE_PATH = os.path.join(CURRENT_DIRECTORY, FOLDER_NAME)
 
 
 def dfsOpen(filename):
     path = os.path.join(FILE_PATH, filename)
     exists = os.path.isfile(path)
     return exists
-
+def dfsClose(filename):
+    path = os.path.join(FILE_PATH, filename)
 def dfsRead(filename):
     path = os.path.join(FILE_PATH, filename)
     file_handle = open(path, "r")
     data = file_handle.read()
     return data
-
 def dfsWrite(filename, data):
     path = os.path.join(FILE_PATH, filename)
     file_handle = open(path, "w+")
@@ -42,7 +43,7 @@ class ThreadHandler(SocketServer.BaseRequestHandler):
 
           if requestType == "open":
              exists = dfsOpen(msg['filename'])
-             response = json.dumps({"response": requestType, "filename": msg['filename'], "isFile": exists)
+             response = json.dumps({"response": requestType, "filename": msg['filename'], "File": exists)
           elif requestType == "close":
                response = json.dumps({"response": requestType, "filename": msg['filename'])
           elif requestType == "read":
@@ -50,11 +51,21 @@ class ThreadHandler(SocketServer.BaseRequestHandler):
                response = json.dumps({"response": requestType,"filename": msg['filename'], "data": data})
           elif requestType == "write":
                dfsWrite(msg['filename'], msg['data'])
-               response = json.dumps({"response": requestType,"filename": msg['filename'], "uuid": NODEID})
+               response = json.dumps({"response": requestType,"filename": msg['filename'])
        	  else:
                response = json.dumps({"response": "Error", "error": requestType+" is not a valid request")
 
           self.request.sendall(response)
-class FileServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
+class FileServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     pass
 
+if __name__ == '__main__':
+	address = (HOST, PORT)
+	server = FileServer(address, ThreadHandler)
+	
+	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	sock.connect((MAIN_ADDRESS, MAIN_PORT))
+	response = sock.recv(1024)
+	sock.close()
+	
+	server.serve_forever()

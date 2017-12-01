@@ -5,7 +5,7 @@ import uuid
 import time
 
 Main_Host = "localhost"
-Main_Port = 8080
+Main_Port = 44444
 
 
 class Client():
@@ -32,7 +32,7 @@ class Client():
         sock.sendall(msg)
         response = sock.recv(1024)
         return response
-
+    
 
 # client test
 if __name__ == '__main__':
