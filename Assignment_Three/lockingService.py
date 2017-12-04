@@ -58,4 +58,6 @@ class LockingServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     pass
 
 if __name__ == '__main__':
-    
+    address = (Host, Port)
+    server = LockingServer(address, ThreadedHandler)
+    server.serve_forever()

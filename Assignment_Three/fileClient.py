@@ -3,18 +3,24 @@ import socket
 import json
 import uuid
 import time
+import securityService
 
 Main_Host = "localhost"
 Main_Port = 44444
+Lock_Host = "localhost"
+Lock_Port = 8883
+Auth_Host = "localhost"
+Auth_Port = 19754
 
 
 class Client():
-    def __init__(self, mainHost, mainPort):
-        #self.id = str(uuid.uuid4())
+    def __init__(self, mainHost, mainPort, lockHost, lockPort, authHost, authPort):
         self.mainAddr = mainHost
         self.mainPort = mainPort
 	self.lockAddr = lockHost
         self.lockPort = lockPort
+	self.authAddr = authHost
+        self.authPort = authPort
 	self.cache = {}
 
     def open(self, filename):
@@ -36,11 +42,13 @@ class Client():
         return response
 
     def read(self, filename):
+
         fileCheck = json.loads(self.open(filename))
 	if fileCheck['isFile']:
 	   if (filename in self.cache)
 	       cacheFile = self.cache[filename]
 	       print "Read from cache: " +filename
+
 	   else:
 	       sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                sock.connect(self.mainAddr, self.mainPort)
@@ -49,43 +57,62 @@ class Client():
 
                response = sock.recv(1024)
 	       self.cache['filename'] = json.loads(response)
+
 	else:
            return filename + " no exist"
 
      def write(self, filename, data):
 
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.connect(self.mainAddr, self.mainPort)
+         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+         sock.connect(self.mainAddr, self.mainPort)
 
-        #timestamp = time.time()
+         timestamp = time.time()
 
-        msg = json.dumps({"request": "write", "filename": filename})
-        sock.sendall(msg)
-        response = sock.recv(1024)
+         msg = json.dumps({"request": "write", "filename": filename})
+         sock.sendall(msg)
+         response = sock.recv(1024)
 
-        fileCheck = json.loads(response)
+         fileCheck = json.loads(response)
 
-        addr = fileServerInfo['address']
-        port = int(fileServerInfo['port'])
+         addr = fileCheck['address']
+         port = int(fileCheck['port'])
 
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.connect((addr, port))
+         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+         sock.connect((addr, port))
 
-        content = {"request": "write", "filename": filename, "data": data}
+         edit = {"request": "write", "filename": filename, "data": data}
 
-        self.cache[filename] = content
+         self.cache[filename] = edit
 
-        msg = json.dumps(content)
-        sock.sendall(msg)
+         msg = json.dumps(edit)
+         sock.sendall(msg)
 
-        response = sock.recv(1024)
-        return response
+         response = sock.recv(1024)
+         return response
+
+     def checkAuthentication(self, username, password):
+	 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+         sock.connect(self.authAddr, self.authPort)
+
+	 encId = base64.b64encode(securityService.encrypt(userId, userPassword).encode()).decode()
+         authorisationCheck = {'user_id': userId, 'password': userPassword, 'encrypted_id': encId, 'server_id': 'File Server 1'}
+
+	 msg = json.dumps(authorisationCheck)
+         sock.sendall(msg)  
+
+	 response = sock.recv(1024)
+         return response
 
 if __name__ == '__main__':
-    client = Client(Main_Host, Main_Port)
+    client = Client(Main_Host, Main_Port, Lock_Host, Lock_Port, Auth_Host, Auth_Port)
 
     requestType = ""
     response = ""
+
+    userId = input("Please Enter Username: ")
+    userPassword = input("Please Enter Password: ")
+    response = client.checkAuthentication(userId, userPassword)
+    print response
 
     while requestType != "quit":
         requestType = raw_input("Please enter a request type eg: open - close - checklock - obtainlock - read - write or type quit to terminate the program: ")
