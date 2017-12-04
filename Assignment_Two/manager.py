@@ -2,6 +2,9 @@
 from pygit2 import Repository, clone_repository
 from time import time
 
+Host = "localhost"
+Port = 8883
+
 def getRepository():
     try:
         repo = Repository('./repo')
@@ -20,3 +23,13 @@ def getCommits(repo):
 def sendWork():
     repo = getRepository()
     commits = get_commits(repo)
+
+class ThreadedHandler(SocketServer.BaseRequestHandler):
+    def handle(self):
+
+class managerServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
+    pass
+if __name__ == '__main__':
+    address = (Host, Port)
+    server = managerServer(address, ThreadedHandler)
+    server.serve_forever()

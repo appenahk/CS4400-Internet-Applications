@@ -8,8 +8,8 @@ import os
 import base64
 import sqlite3 as sql
 
-Host = "localhost"
-Port = 19754
+host = "localhost"
+port = 19754
 
 db = sql.connect('database.db')
 cursor = db.cursor()
@@ -41,7 +41,7 @@ def getServerKey(server_id):
         return None
     return data[0]
 
-def isUser(user_id, enc_id):
+def checkUser(user_id, enc_id):
     password = getPassword(user_id)
     if password is None:
         return False
@@ -51,9 +51,9 @@ def isUser(user_id, enc_id):
 def generateKey(length):
     return ''.join(random.choices(string.ascii_lowercase + string.digits, k=N))
 
-def createDB():
-    cursor.execute('''CREATE TABLE IF NOT EXISTS users(id TEXT PRIMARY KEY, password TEXT, enc_id TEXT)''')
-    cursor.execute('''CREATE TABLE IF NOT EXISTS servers(id TEXT PRIMARY KEY, key TEXT)''')
+def createDatabase():
+    cursor.execute('''CREATE TABLE users(id TEXT PRIMARY KEY, password TEXT, enc_id TEXT)''')
+    cursor.execute('''CREATE TABLE servers(id TEXT PRIMARY KEY, key TEXT)''')
     db.commit()
 
 class ThreadedHandler(SocketServer.BaseRequestHandler):
@@ -70,7 +70,7 @@ class ThreadedHandler(SocketServer.BaseRequestHandler):
                    (msg['server_id'], msg['server_id']))
         db.commit()
 
-        if isUser(user_id, enc_id):
+        if checkUser(user_id, enc_id):
            key = getServerKey(server_id)
 
 	   if key is None:
@@ -93,6 +93,7 @@ class SecurityServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     pass
 
 if __name__ == '__main__':
-    address = (Host, Port)
+    createDatabase()
+    address = (host, port)
     server = SecurityServer(address, ThreadedHandler)
     server.serve_forever()

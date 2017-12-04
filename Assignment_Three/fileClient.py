@@ -6,7 +6,7 @@ import time
 import securityService
 
 Main_Host = "localhost"
-Main_Port = 44444
+Main_Port = 1759
 Lock_Host = "localhost"
 Lock_Port = 8883
 Auth_Host = "localhost"
@@ -94,7 +94,7 @@ class Client():
 	 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
          sock.connect((self.lockAddr, self.lockPort))
 
-	 msg = json.dumps({"request": "checklock", "filename": filename, "clientid": self.id})
+	 msg = json.dumps({"request": "checklock", "filename": filename)
          sock.sendall(msg)
          response = sock.recv(1024)
 
@@ -102,7 +102,7 @@ class Client():
 	 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
          sock.connect((self.lockAddr, self.lockPort))
 
-	 msg = json.dumps({"request": "obtainlock", "filename": filename, "clientid": self.id})
+	 msg = json.dumps({"request": "obtainlock", "filename": filename)
          sock.sendall(msg)
          response = sock.recv(1024)
 

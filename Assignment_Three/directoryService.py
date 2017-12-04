@@ -5,7 +5,7 @@ import uuid
 import random
 
 HOST = "localhost"
-PORT = 44444
+PORT = 1759
 
 FILES = {}
 

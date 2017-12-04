@@ -9,7 +9,7 @@ HOST = "localhost"
 PORT = 0
 
 MAIN_ADDRESS = "localhost"
-MAIN_PORT = 44444
+MAIN_PORT = 1759
 
 CURRENT_DIRECTORY = os.getcwd()
 FOLDER_NAME = "testfiles"           

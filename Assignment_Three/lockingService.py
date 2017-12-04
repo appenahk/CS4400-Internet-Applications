@@ -17,6 +17,11 @@ def getLocks(filename):
     else:
         return None
 
+def deleteLock(filename):
+    del LOCK_MAPPINGS[filename]
+
+def addLock(filename, timestamp, timeout):
+    LOCK_MAPPINGS[filename] = {"timestamp": timestamp, "timeout": timeout}
 class ThreadedHandler(SocketServer.BaseRequestHandler):
     def handle(self):
         msg = self.request.recv(1024)
@@ -34,13 +39,44 @@ class ThreadedHandler(SocketServer.BaseRequestHandler):
                 print "file locked"
                 timestamp = time.time()
   		checkFile = getLocks(msg['filename'])
-
-
+		if checkFile['timestamp']+checkFile['timeout'] < timestamp:
+		   deleteLock
+		   response = json.dumps({
+                        "response": "unlocked"
+                    })
+		else:
+                    print "checklock: locked"
+                    response = json.dumps({
+                        "response": "locked",
+                        "filename": msg['filename'],
+                        "timestamp": fs['timestamp'],
+                        "timeout": fs['timeout']
+                    })
+	    else:
+                response = json.dumps({
+                    "response": "unlocked"
+                })
         elif requestType == "getlock":
             if lockExists(msg['filename']):
-                print "Obtain lock"
-
-                
+                print "get lock"
+		checkFile = getLocks(msg['filename'])
+                timestamp = time.time()
+		if checkFile['timestamp']+checkFile['timeout'] < timestamp:
+		   deleteLock(msg['filename'])
+		   addLock(msg['filename'], timestamp, LOCK_TIMEOUT)
+		   response = json.dumps({
+                        "response": "lock granted",
+                        "filename": msg['filename'],
+                        "timestamp": fs['timestamp'],
+                        "timeout": fs['timeout']
+                    })
+		else:
+                    print "getlock: locked"
+                    response = json.dumps({
+                        "response": "locked",
+                        "filename": msg['filename'],
+                        "timestamp": fs['timestamp'],
+                        "timeout": fs['timeout']
             else:
                 
         else:
