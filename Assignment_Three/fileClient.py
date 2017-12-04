@@ -90,7 +90,23 @@ class Client():
          response = sock.recv(1024)
          return response
 
-     def checkAuthentication(self, username, password):
+     def checkLock()
+	 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+         sock.connect((self.lockAddr, self.lockPort))
+
+	 msg = json.dumps({"request": "checklock", "filename": filename, "clientid": self.id})
+         sock.sendall(msg)
+         response = sock.recv(1024)
+
+     def getLock()
+	 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+         sock.connect((self.lockAddr, self.lockPort))
+
+	 msg = json.dumps({"request": "obtainlock", "filename": filename, "clientid": self.id})
+         sock.sendall(msg)
+         response = sock.recv(1024)
+
+     def authentication(self, username, password):
 	 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
          sock.connect(self.authAddr, self.authPort)
 
@@ -109,13 +125,13 @@ if __name__ == '__main__':
     requestType = ""
     response = ""
 
-    userId = input("Please Enter Username: ")
-    userPassword = input("Please Enter Password: ")
-    response = client.checkAuthentication(userId, userPassword)
+    userId = raw_input("Please Enter Username: ")
+    userPassword = raw_input("Please Enter Password: ")
+    response = client.authentication(userId, userPassword)
     print response
 
     while requestType != "quit":
-        requestType = raw_input("Please enter a request type eg: open - close - checklock - obtainlock - read - write or type quit to terminate the program: ")
+        requestType = raw_input("Please enter a request type eg: open - close - read - write - checklock - getlock or type quit to terminate the program: ")
 
         if requestType == "open":
             filename = raw_input("Please enter the filename: ")
@@ -130,6 +146,12 @@ if __name__ == '__main__':
             filename = raw_input("Please enter the filename: ")
             data = raw_input("Please enter the file contents to write: ")
             response = client.write(filename, data)    
+	elif requestType == "checklock":
+            filename = raw_input("Please enter the filename: ")
+            response = client.checkLock(filename)
+        elif requestType == "getlock":
+            filename = raw_input("Please enter the filename: ")
+            response = client.obtainLock(filename)
         elif requestType == "quit":
             response = "Exiting Distributed File System!"
         else:

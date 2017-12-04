@@ -5,23 +5,17 @@ import time
 Host = "localhost"
 Port = 8883
 
-LOCK_TIMEOUT = 30
+LOCK_TIMEOUT = 60
 LOCK_MAPPINGS = {} 
 
 def lockExists(filename):
     return filename in LOCK_MAPPINGS
 
-def getLockMapping(filename):
+def getLocks(filename):
     if lockExists(filename):
         return LOCK_MAPPINGS[filename]
     else:
         return None
-
-'''def addLockMapping(filename, clientid, timestamp, timeout):
-    LOCK_MAPPINGS[filename] = {"clientid": clientid, "timestamp": timestamp, "timeout": timeout}
-
-def deleteLockMapping(filename):
-    del LOCK_MAPPINGS[filename]'''
 
 class ThreadedHandler(SocketServer.BaseRequestHandler):
     def handle(self):
@@ -35,13 +29,14 @@ class ThreadedHandler(SocketServer.BaseRequestHandler):
 
         response = ""
 
-
         if requestType == "checklock":
             if lockExists(msg['filename']):
                 print "file locked"
                 timestamp = time.time()
-  
-        elif requestType == "obtainlock":
+  		checkFile = getLocks(msg['filename'])
+
+
+        elif requestType == "getlock":
             if lockExists(msg['filename']):
                 print "Obtain lock"
 

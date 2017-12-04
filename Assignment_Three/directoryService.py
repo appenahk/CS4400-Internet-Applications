@@ -17,11 +17,6 @@ def getFile(filename):
         return FILES[filename]
     else:
         return None
-'''def addFile(filename, nodeID, address, port, timestamp):
-    FILES['filename'] = {"nodeID": nodeID, "address": address, "port": port, "timestamp": timestamp}
-
-def deleteFile(filename):
-    del FILES[filename]'''
 
 class ThreadedHandler(SocketServer.BaseRequestHandler):
 
@@ -36,7 +31,9 @@ class ThreadedHandler(SocketServer.BaseRequestHandler):
                 response = json.dumps({
                             "response": "open",
 	                    "filename": msg['filename'],
-	                    "File": True})
+	                    "File": True,
+ 			    "address": openFile['address'],
+	                    "port": openFile['port']})
 	     else:
 	        response = json.dumps({
 	                    "response": "file no exist",
@@ -48,39 +45,45 @@ class ThreadedHandler(SocketServer.BaseRequestHandler):
                   response = json.dumps({
 	                    "response": "close",
 	                    "filename": msg['filename'],
-	                    "File": True})
+	                    "File": True,
+			    "address": openFile['address'],
+	                    "port": openFile['port']})
                else:
 	          response = json.dumps({
 	                    "response": "file no exist",
 	                    "filename": msg['filename'],
-	                    "isFile": False})
+	                    "File": False})
 
 	  elif requestType == "read":
 	       if fileExists(msg['filename']):
 	                readFile = getFile('filename')
 	                response = json.dumps({
-	                    "response": "read-exists",
+	                    "response": "read",
 	                    "filename": msg['filename'],
-	                    "isFile": True})
+	                    "File": True,
+			    "address": readFile['address'],
+	                    "port": readFile['port']})
                else:
 	                response = json.dumps({
 	                    "response": "file no exist",
 	                    "filename": msg['filename'],
-	                    "isFile": False
+	                    "File": False
 	                })
 
 	  elif requestType == "write":
 	       if fileExists(msg['filename']):
-	                #writeFile = getFile(msg['filename'])
+	                writeFile = getFile(msg['filename'])
 	                response = json.dumps({
 	                    "response": "write",
 	                    "filename": msg['filename'],
-	                    "isFile": True})
+	                    "File": True,
+			    "address": writeFile['address'],
+	                    "port": writeFile['port']})
 	       else:               
 	                response = json.dumps({
 	                    "response": "file no exist",
 	                    "filename": msg['filename'],
-	                    "isFile": False})
+	                    "File": False})
 	  self.request.sendall(response)
 
 class DirectoryServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):

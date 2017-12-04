@@ -8,11 +8,11 @@ NODEID = ""
 HOST = "localhost"
 PORT = 0
 
-MAIN_ADDRESS = "localhost"#"127.0.0.1"
+MAIN_ADDRESS = "localhost"
 MAIN_PORT = 44444
 
 CURRENT_DIRECTORY = os.getcwd()
-FOLDER_NAME = "testfiles"              #directory to store files
+FOLDER_NAME = "testfiles"           
 FILE_PATH = os.path.join(CURRENT_DIRECTORY, FOLDER_NAME)
 
 
@@ -49,18 +49,18 @@ class ThreadHandler(SocketServer.BaseRequestHandler):
              response = json.dumps({"response": requestType, "filename": msg['filename'], "File": exists, "address": HOST, "port": PORT})
 
           elif requestType == "close":
-               response = json.dumps({"response": requestType, "filename": msg['filename'], "address": HOST, "port": PORT})
+             response = json.dumps({"response": requestType, "filename": msg['filename'], "address": HOST, "port": PORT})
 
           elif requestType == "read":
-               data = dfsRead(msg['filename'])
-               response = json.dumps({"response": requestType,"filename": msg['filename'], "data": data}, "address": HOST, "port": PORT})
+             data = dfsRead(msg['filename'])
+             response = json.dumps({"response": requestType,"filename": msg['filename'], "data": data}, "address": HOST, "port": PORT})
 
           elif requestType == "write":
-               dfsWrite(msg['filename'], msg['data'])
-               response = json.dumps({"response": requestType,"filename": msg['filename'], "address": HOST, "port": PORT})
+             dfsWrite(msg['filename'], msg['data'])
+             response = json.dumps({"response": requestType,"filename": msg['filename'], "address": HOST, "port": PORT})
 
        	  else:
-               response = json.dumps({"response": "Error", "error": requestType+" is not a valid request", "address": HOST, "port": PORT})
+             response = json.dumps({"response": "Error", "error": requestType+" is not a valid request", "address": HOST, "port": PORT})
 
           self.request.sendall(response)
 
