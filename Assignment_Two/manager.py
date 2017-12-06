@@ -8,17 +8,17 @@ url = 'https://api.github.com/repos/rubik/radon/commits'
 def getCommits():
     
     commits = []
-    with open('github_token.txt', 'r') as tmp:
-        token = .read() 
+    with open('github-token.txt', 'r') as token_file:
+        token = token_file.read().split()[0] 
         payload = {'access_token': token}
 
     response = requests.get(url, param=payload)
     while 'next' in response.links:
         for elem in response.get_json():
-            commits.append(elem['tree']['url'])
+            commits.append(elem['commit']['tree']['url'])
 
     for elem in response.get_json():
-        commits.append(elem['tree']['url'])
+        commits.append(elem['commit']['tree']['url'])
     return commits
 
 @app.route('/work' , methods=['GET'])
