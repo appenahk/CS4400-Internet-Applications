@@ -1,35 +1,43 @@
 #!/usr/bin/python
-from pygit2 import Repository, clone_repository
 from time import time
+from flask import Flask
+import requests
 
-Host = "localhost"
-Port = 8883
-
-def getRepository():
-    try:
-        repo = Repository('./repo')
-    except:
-        repo_url = 'https://github.com/rubik/radon.git'
-        repo_path = './repo'
-        repo = clone_repository(repo_url, repo_path)
-    return repo
-
-def getCommits(repo):
+app = Flask(__name__)
+url = 'https://api.github.com/repos/rubik/radon/commits'
+def getCommits():
+    
     commits = []
-    for commit in repo.walk(repo):
-        commits.append(repo.get(commit.id))
+    with open('github_token.txt', 'r') as tmp:
+        token = .read() 
+        payload = {'access_token': token}
+
+    response = requests.get(url, param=payload)
+    while 'next' in response.links:
+        for elem in response.get_json():
+            commits.append(elem['tree']['url'])
+
+    for elem in response.get_json():
+        commits.append(elem['tree']['url'])
     return commits
 
+@app.route('/work' , methods=['GET'])
 def sendWork():
-    repo = getRepository()
-    commits = get_commits(repo)
+    commits = getCommits()
+    global next
+    while next <= len(commits) 
+	  next += 1
+	  sentWork = jsonify({"commit": commits[next]})
+	  return sentWork
 
-class ThreadedHandler(SocketServer.BaseRequestHandler):
-    def handle(self):
+@app.route('/result', methods=['POST'])
+def result():
+    result = request.get_json()
+    result_list.append(result)
 
-class managerServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
-    pass
 if __name__ == '__main__':
-    address = (Host, Port)
-    server = managerServer(address, ThreadedHandler)
-    server.serve_forever()
+    next = 0
+    
+    global result_list
+    result_list = []
+    app.run(threaded=True, debug=True)
