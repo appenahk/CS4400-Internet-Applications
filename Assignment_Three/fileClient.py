@@ -27,7 +27,7 @@ class Client():
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect(self.mainAddr, self.mainPort)
 
-        msg = json.dumps({"request": "open", "filename": filename)
+        msg = json.dumps({"request": "open", "filename": filename})
         sock.sendall(msg)
         response = sock.recv(1024)
         return response
@@ -36,7 +36,7 @@ class Client():
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect(self.mainAddr, self.mainPort)
 
-        msg = json.dumps({"request": "close", "filename": filename)
+        msg = json.dumps({"request": "close", "filename": filename})
         sock.sendall(msg)
         response = sock.recv(1024)
         return response
@@ -44,8 +44,8 @@ class Client():
     def read(self, filename):
 
         fileCheck = json.loads(self.open(filename))
-	if fileCheck['isFile']:
-	   if (filename in self.cache)
+	if fileCheck['file']:
+	   if (filename in self.cache):
 	       cacheFile = self.cache[filename]
 	       print "Read from cache: " +filename
 
@@ -61,63 +61,68 @@ class Client():
 	else:
            return filename + " no exist"
 
-     def write(self, filename, data):
+    def write(self, filename, data):
 
-         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-         sock.connect(self.mainAddr, self.mainPort)
+	lockcheck = json.loads(client.checkLock(filename))
 
-         timestamp = time.time()
+        if lockcheck['response'] == "locked":
+           return "Cannot write as file is locked by another client!"
 
-         msg = json.dumps({"request": "write", "filename": filename})
-         sock.sendall(msg)
-         response = sock.recv(1024)
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect(self.mainAddr, self.mainPort)
 
-         fileCheck = json.loads(response)
+        timestamp = time.time()
 
-         addr = fileCheck['address']
-         port = int(fileCheck['port'])
+        msg = json.dumps({"request": "write", "filename": filename, "timestamp": timestamp})
+        sock.sendall(msg)
+        response = sock.recv(1024)
 
-         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-         sock.connect((addr, port))
+        fileCheck = json.loads(response)
 
-         edit = {"request": "write", "filename": filename, "data": data}
+        addr = fileCheck['address']
+        port = int(fileCheck['port'])
 
-         self.cache[filename] = edit
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect((addr, port))
 
-         msg = json.dumps(edit)
-         sock.sendall(msg)
+        edit = {"request": "write", "filename": filename, "data": data, "timestamp": timestamp}
 
-         response = sock.recv(1024)
-         return response
+        self.cache[filename] = edit
 
-     def checkLock()
-	 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-         sock.connect((self.lockAddr, self.lockPort))
+        msg = json.dumps(edit)
+        sock.sendall(msg)
 
-	 msg = json.dumps({"request": "checklock", "filename": filename)
-         sock.sendall(msg)
-         response = sock.recv(1024)
+        response = sock.recv(1024)
+        return response
 
-     def getLock()
-	 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-         sock.connect((self.lockAddr, self.lockPort))
+    def checkLock():
+	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect((self.lockAddr, self.lockPort))
 
-	 msg = json.dumps({"request": "obtainlock", "filename": filename)
-         sock.sendall(msg)
-         response = sock.recv(1024)
+ 	msg = json.dumps({"request": "checklock", "filename": filename})
+        sock.sendall(msg)
+        response = sock.recv(1024)
 
-     def authentication(self, username, password):
-	 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-         sock.connect(self.authAddr, self.authPort)
+    def getLock():
+	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect((self.lockAddr, self.lockPort))
 
-	 encId = base64.b64encode(securityService.encrypt(userId, userPassword).encode()).decode()
-         authorisationCheck = {'user_id': userId, 'password': userPassword, 'encrypted_id': encId, 'server_id': 'File Server 1'}
+	msg = json.dumps({"request": "getlock", "filename": filename})
+        sock.sendall(msg)
+        response = sock.recv(1024)
 
-	 msg = json.dumps(authorisationCheck)
-         sock.sendall(msg)  
+    def authentication(self, username, password):
+	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect((self.authAddr, self.authPort))
 
-	 response = sock.recv(1024)
-         return response
+	encId = base64.b64encode(securityService.encrypt(userId, userPassword).encode()).decode()
+        authorisationCheck = {'user_id': userId, 'password': userPassword, 'encrypted_id': encId, 'server_id': 'File Server 1'}
+
+	msg = json.dumps(authorisationCheck)
+        sock.sendall(msg)  
+
+	response = sock.recv(1024)
+        return response
 
 if __name__ == '__main__':
     client = Client(Main_Host, Main_Port, Lock_Host, Lock_Port, Auth_Host, Auth_Port)

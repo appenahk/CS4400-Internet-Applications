@@ -63,6 +63,7 @@ class ThreadedHandler(SocketServer.BaseRequestHandler):
 	msg = json.loads(msg)
 	user_id = msg['user_id']
         enc_id = msg['encrypted_id'].encode()
+	server_id = msg['server_id']
 
 	cursor.execute('''INSERT OR REPLACE INTO users(id, password, enc_id) VALUES(?,?,?)''',
                    (msg['user_id'], msg['password'], msg['encrypted_id']))

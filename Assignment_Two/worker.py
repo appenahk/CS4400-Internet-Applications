@@ -3,6 +3,7 @@ from radon.complexity import cc_visit, cc_rank
 from radon.complexity import SCORE
 from radon.cli.harvest import CCHarvester
 from radon.cli import Config
+from shutil import rmtree
 import json
 import requests 
 
@@ -16,24 +17,29 @@ cc_config = Config(
         max='F',
 )
 def getToken():
-    with open('github-token', 'r') as file_handle:
+    with open('github-token.txt', 'r') as file_handle:
             return file_handle.read().split()[0]
 
 def getWork():
-    response = requests.get('localhost:1759/work', params={'key': 'value'})
-    #response.encoding = 'utf-8'
-    commits = response.json()['commit']
+    response = requests.get('http://localhost:5000/work', params={'key': 'value'})  
+    if response.status_code == 200:    
+       data = response.json()
+       json_file = json_loads(data) 
+       commits = json_file['commit']
     py_files = []
     payload = {'access_token': getToken()}
     headers = {'Accept': 'application/vnd.github.v3.raw'}
     
-    for blobs in commits:
-	resp = requests.get(blobs, params=payload, headers=headers))
-	trees = resp.json()['tree']
+    for trees in commits:
+	resp = requests.get(trees, params=payload, headers=headers))
+	tree_files = resp.json()['tree']
 
-    	for item in trees:
+    	for item in tree_files:
             if item['type'] == 'blob' and pyFile(item['path']):
-               py_files.append(item['path'])
+	       tree_url = item['url']
+	       filename = item['path']
+	       filepath = tree_url + '<>' + filename
+               py_files.append(filepath)
 
     return py_files
 
@@ -45,42 +51,41 @@ def computeComplexity(filepath):
     os.remove(file_path)
 
     cc_file = 0
-
     for cyclo in complexity_analysis:
         print (cyclo.complexity)
-        file_cc += int(i.complexity)
+        cc_file += int(cyclo.complexity)
      
-    #print("Complexity of file: " + str(cc_file))
+    print("Complexity of file: " + str(cc_file))
        
     return cc_file
     
 def doWork():
     work = getWork()
     os.makedirs('tmp')
-
+    
     payload = {'access_token': getToken()}
     headers = {'Accept': 'application/vnd.github.v3.raw'}
-
-    for index, url in enumerate(py_files):
-        response = requests.get(url, params=payload, headers=headers)
-
-    with open('./tmp/{}.py'.format(index), 'w') as tmp_file:
-        tmp_file.write(response.text)
     complexity = []
     for files in work:
+	blob_url = files.split('<>')[0]
+	filename = files.split('<>')[1]
+
+	response = requests.get(blob_url, params=payload, headers=headers)
+	with open('./tmp/{}.py'.format(filename), 'w') as tmp_file:
+        	tmp_file.write(response.text)
+	tmp_file.close()
+
 	complexity.append(computeComplexity(files))
+    rmtree('tmp')
     return complexity
 
 def sendResults(complexity):
 	result = {"Result: " : complexity}
-	post = requests.post('localhost:1759/result', json=result)
+	post = requests.post('http://localhost:5000/result', json=result)
 
 def pyFile(self, filename):
         return True if match('.*\.py', filename) is not None else False
 
 if __name__ == '__main__':
-    bool = True
-    while bool: 
-      
         result = doWork(work)
         sendResults(result)

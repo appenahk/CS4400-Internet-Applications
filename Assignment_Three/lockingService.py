@@ -3,8 +3,8 @@ import SocketServer
 import json
 import time
 
-Host = "localhost"
-Port = 8883
+host = "localhost"
+port = 8883
 
 LOCK_TIMEOUT = 60
 LOCK_MAPPINGS = {} 
@@ -23,17 +23,15 @@ def deleteLock(filename):
 
 def addLock(filename, timestamp, timeout):
     LOCK_MAPPINGS[filename] = {"timestamp": timestamp, "timeout": timeout}
+
 class ThreadedHandler(SocketServer.BaseRequestHandler):
     def handle(self):
         msg = self.request.recv(1024)
-
 
         msg = json.loads(msg)
         requestType = msg['request']
 
         print "Request type = " + requestType
-
-        response = ""
 
         if requestType == "checklock":
             if lockExists(msg['filename']):
@@ -41,12 +39,12 @@ class ThreadedHandler(SocketServer.BaseRequestHandler):
                 timestamp = time.time()
   		checkFile = getLocks(msg['filename'])
 		if checkFile['timestamp']+checkFile['timeout'] < timestamp:
-		   deleteLock
+		   deleteLock(msg['filename'])
 		   response = json.dumps({
                         "response": "unlocked"
                     })
 		else:
-                    print "checklock: locked"
+                    print "file locked"
                     response = json.dumps({
                         "response": "locked",
                         "filename": msg['filename'],
@@ -79,17 +77,24 @@ class ThreadedHandler(SocketServer.BaseRequestHandler):
                         "timestamp": fs['timestamp'],
                         "timeout": fs['timeout']
             else:
-                
+                timestamp = time.time()
+                addLock(msg['filename'], timestamp, LOCK_TIMEOUT)
+
+                response = json.dumps({
+                    "response": "lockgranted",
+                    "filename": msg['filename'],
+                    "timestamp": timestamp,
+                    "timeout": LOCK_TIMEOUT
+                })
         else:
             response = json.dumps({"response": "Error", "error": requestType+" is not a valid request"})
 
         self.request.sendall(response)
 
-
 class LockingServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     pass
 
 if __name__ == '__main__':
-    address = (Host, Port)
+    address = (host, port)
     server = LockingServer(address, ThreadedHandler)
     server.serve_forever()
