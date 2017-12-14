@@ -1,17 +1,18 @@
 #!/usr/bin/python
-import SocketServer
+import socketserver
 import socket
 import json
 import os
 
-HOST = "localhost"
+HOST = 'localhost'
 PORT = 0
 
-MAIN_ADDRESS = "localhost"
+Server_ID = ""
+MAIN_ADDRESS = 'localhost'
 MAIN_PORT = 1759
 
 CURRENT_DIRECTORY = os.getcwd()
-FOLDER_NAME = "testfiles"           
+FOLDER_NAME = "testfiles"
 FILE_PATH = os.path.join(CURRENT_DIRECTORY, FOLDER_NAME)
 
 
@@ -31,12 +32,12 @@ def dfsWrite(filename, data):
     file_handle = open(path, "a")
     file_handle.write(data)
 
-class ThreadHandler(SocketServer.BaseRequestHandler):
+class ThreadHandler(socketserver.BaseRequestHandler):
       def handle(self):
           req = self.request.recv(1024)
-          print req
+          print (req)
 
-          msg = json.loads(req)
+          msg = json.loads(req.decode('utf-8'))
           requestType = msg['request']
           response = ""
 
@@ -49,27 +50,32 @@ class ThreadHandler(SocketServer.BaseRequestHandler):
 
           elif requestType == "read":
              data = dfsRead(msg['filename'])
-             response = json.dumps({"response": requestType,"filename": msg['filename'], "data": data}, "address": HOST, "port": PORT})
+             response = json.dumps({"response": requestType,"filename": msg['filename'], "address": HOST, "port": PORT, "data": data})
 
           elif requestType == "write":
              dfsWrite(msg['filename'], msg['data'])
              response = json.dumps({"response": requestType,"filename": msg['filename'], "address": HOST, "port": PORT})
-
-       	  else:
+          else:
              response = json.dumps({"response": "Error", "error": requestType+" is not a valid request", "address": HOST, "port": PORT})
 
-          self.request.sendall(response)
+          self.request.sendall(response.encode('utf-8'))
 
-class FileServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
+class FileServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
       pass
 
 if __name__ == '__main__':
-	address = (HOST, PORT)
-	server = FileServer(address, ThreadHandler)
-	
-	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	sock.connect((MAIN_ADDRESS, MAIN_PORT))
-	response = sock.recv(1024)
-	sock.close()
-	
-	server.serve_forever()
+    address = (HOST, PORT)
+    server = FileServer(address, ThreadHandler)
+    PORT = server.socket.getsockname()[1]
+
+    msg = json.dumps({"request": "new_dfs", "server": Server_ID, "address": HOST, "port": PORT})
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.connect((MAIN_ADDRESS, MAIN_PORT))
+    sock.sendall(msg.encode('utf-8'))
+    response = sock.recv(1024)
+    sock.close()
+    print(msg)
+    data = json.loads(response.decode('utf-8'))
+    print(data)
+    print("Server Running")
+    server.serve_forever()

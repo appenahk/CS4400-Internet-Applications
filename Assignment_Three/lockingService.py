@@ -1,9 +1,9 @@
 #!/usr/bin/python
-import SocketServer
+import socketserver
 import json
 import time
 
-host = "localhost"
+host = 'localhost'
 port = 8883
 
 LOCK_TIMEOUT = 60
@@ -24,58 +24,58 @@ def deleteLock(filename):
 def addLock(filename, timestamp, timeout):
     LOCK_MAPPINGS[filename] = {"timestamp": timestamp, "timeout": timeout}
 
-class ThreadedHandler(SocketServer.BaseRequestHandler):
+class ThreadedHandler(socketserver.BaseRequestHandler):
     def handle(self):
         msg = self.request.recv(1024)
 
         msg = json.loads(msg)
         requestType = msg['request']
 
-        print "Request type = " + requestType
-
+        print ("Request type = " + requestType)
+        response = ""
         if requestType == "checklock":
             if lockExists(msg['filename']):
-                print "file locked"
+                print ("file locked")
                 timestamp = time.time()
-  		checkFile = getLocks(msg['filename'])
-		if checkFile['timestamp']+checkFile['timeout'] < timestamp:
-		   deleteLock(msg['filename'])
-		   response = json.dumps({
-                        "response": "unlocked"
-                    })
-		else:
-                    print "file locked"
+                checkFile = getLocks(msg['filename'])
+
+                if checkFile['timestamp']+checkFile['timeout'] < timestamp:
+                    deleteLock(msg['filename'])
+                    response = json.dumps({
+                        "response": "unlocked"})
+                else:
+                    print ("file locked")
                     response = json.dumps({
                         "response": "locked",
                         "filename": msg['filename'],
                         "timestamp": fs['timestamp'],
                         "timeout": fs['timeout']
                     })
-	    else:
+            else:
                 response = json.dumps({
                     "response": "unlocked"
                 })
         elif requestType == "getlock":
             if lockExists(msg['filename']):
-                print "get lock"
-		checkFile = getLocks(msg['filename'])
+                print ("get lock")
+                checkFile = getLocks(msg['filename'])
                 timestamp = time.time()
-		if checkFile['timestamp']+checkFile['timeout'] < timestamp:
-		   deleteLock(msg['filename'])
-		   addLock(msg['filename'], timestamp, LOCK_TIMEOUT)
-		   response = json.dumps({
+
+                if checkFile['timestamp']+checkFile['timeout'] < timestamp:
+                    deleteLock(msg['filename'])
+                    addLock(msg['filename'], timestamp, LOCK_TIMEOUT)
+                    response = json.dumps({
                         "response": "lock granted",
                         "filename": msg['filename'],
                         "timestamp": fs['timestamp'],
-                        "timeout": fs['timeout']
-                    })
-		else:
-                    print "getlock: locked"
+                        "timeout": fs['timeout']})
+                else:
+                    print ("getlock: locked")
                     response = json.dumps({
-                        "response": "locked",
-                        "filename": msg['filename'],
-                        "timestamp": fs['timestamp'],
-                        "timeout": fs['timeout']
+                            "response": "locked",
+                            "filename": msg['filename'],
+                            "timestamp": fs['timestamp'],
+                            "timeout": fs['timeout']})
             else:
                 timestamp = time.time()
                 addLock(msg['filename'], timestamp, LOCK_TIMEOUT)
@@ -89,12 +89,13 @@ class ThreadedHandler(SocketServer.BaseRequestHandler):
         else:
             response = json.dumps({"response": "Error", "error": requestType+" is not a valid request"})
 
-        self.request.sendall(response)
+        self.request.sendall(response.encode('utf-8'))
 
-class LockingServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
+class LockingServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     pass
 
 if __name__ == '__main__':
     address = (host, port)
     server = LockingServer(address, ThreadedHandler)
+    print("Locking Server Running")
     server.serve_forever()
