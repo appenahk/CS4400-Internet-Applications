@@ -1,7 +1,6 @@
 import time
 from flask import Flask, request, jsonify
-import requests
-from time import gmtime, strftime
+import requests, sys
 
 app = Flask(__name__)
 commits = []
@@ -9,9 +8,10 @@ received = 0
 next_commit = 0
 time_start = time.clock()
 time_finish = time.clock()
+#num_workers = sys.argv[1]
 
 def getCommits():
-    url = 'https://api.github.com/repos/appenahk/CS4400-Internet-Applications/commits'
+    url = 'https://api.github.com/repos/frcs/EE4C16-self-driving-lab/commits'
     global commits
     with open('github-token.txt', 'r') as token_file:
         token = token_file.read()
@@ -22,7 +22,6 @@ def getCommits():
 
     for elem in response.json():
         commits.append(elem["commit"]["tree"]["url"])
-
     return commits
 
 @app.route('/work', methods=['GET'])
@@ -35,25 +34,23 @@ def sendWork():
             next_commit += 1
             print(next_commit)
             sentWork = {"commit": sendCommit}
-            print(sentWork)
             return jsonify(sentWork)
     except:
-        return "done"
+        return {"commit": "complete"}
 
 
 @app.route('/result', methods=['POST'])
 def result():
-    result = request.form['complexity']
+    result = request.json()['complexity']
     global total_cc
-    for comp in result:
-        total+= int(comp)
+    total_cc+= int(result)
     num += 1
     if num == next_commit:
         average = total/next_commit
-        print("Total: ", total)
+        print("Complexity of Repository: ", total)
         print("Average: ", average)
         shutdown_server()
-    return 'Submission Received', 204
+    return 'Submission Received'
 
 def shutdown_server():
 
@@ -63,8 +60,11 @@ def shutdown_server():
     func()
 
 if __name__ == '__main__':
+    next_commit = 0
     time_start = time.clock()
     app.run(port=6790, threaded=True, debug=True)
     time_finish = time.clock()
     total_time = time_start - time_finish
     print("Total time taken was: " + str(total_time))
+    with open('results.txt', 'a') as results:
+        results.write('Workers: {}\nTime: {}\n'.format(1, total_time))
