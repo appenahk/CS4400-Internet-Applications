@@ -1,8 +1,8 @@
-#!/usr/bin/python
 import socketserver
 import json
 import uuid
 from random import choice
+
 
 HOST = "localhost"
 PORT = 1759
@@ -107,7 +107,7 @@ class ThreadedHandler(socketserver.BaseRequestHandler):
 	                })
             else:
                 randomServer = getRandomServer()
-                print("here")
+
                 FILES[msg['filename']] = {"server": randomServer[0], "address": randomServer[1]['address'], "port": randomServer[1]['port'], "timestamp": msg['timestamp']}
                 response = json.dumps({
 	                    "response": "write-null",

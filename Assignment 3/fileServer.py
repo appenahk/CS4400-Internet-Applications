@@ -12,7 +12,7 @@ MAIN_ADDRESS = 'localhost'
 MAIN_PORT = 1759
 
 CURRENT_DIRECTORY = os.getcwd()
-FOLDER_NAME = "testfiles"
+FOLDER_NAME = "testfiles/"
 FILE_PATH = os.path.join(CURRENT_DIRECTORY, FOLDER_NAME)
 
 
@@ -35,7 +35,7 @@ def dfsWrite(filename, data):
 class ThreadHandler(socketserver.BaseRequestHandler):
       def handle(self):
           req = self.request.recv(1024)
-          print (req)
+          print (req.decode('utf-8'))
 
           msg = json.loads(req.decode('utf-8'))
           requestType = msg['request']

@@ -29,7 +29,7 @@ class Client():
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((self.mainAddr, self.mainPort))
 
-        msg = json.dumps({"request": "open", "filename": filename})
+        msg = json.dumps({"request": "open", "filename": filename, "clientid": self.id})
         sock.sendall(msg.encode('utf-8'))
         response = sock.recv(1024)
         return response
@@ -38,7 +38,7 @@ class Client():
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((self.mainAddr, self.mainPort))
 
-        msg = json.dumps({"request": "close", "filename": filename})
+        msg = json.dumps({"request": "close", "filename": filename, "clientid": self.id})
         sock.sendall(msg.encode('utf-8'))
         response = sock.recv(1024)
         return response
@@ -54,7 +54,7 @@ class Client():
             else:
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 sock.connect((self.mainAddr, self.mainPort))
-                msg = json.dumps({"request": "read", "filename": filename})
+                msg = json.dumps({"request": "read", "filename": filename, "clientid": self.id})
                 sock.sendall(msg.encode('utf-8'))
 
                 response = sock.recv(1024)
@@ -74,7 +74,7 @@ class Client():
 
         timestamp = time.time()
 
-        msg = json.dumps({"request": "write", "filename": filename, "timestamp": timestamp})
+        msg = json.dumps({"request": "write", "filename": filename, "timestamp": timestamp, "clientid": self.id})
 
         sock.sendall(msg.encode('utf-8'))
         print(msg)
@@ -88,30 +88,30 @@ class Client():
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((addr, port))
 
-        edit = {"request": "write", "filename": filename, "data": data, "timestamp": timestamp}
+        edit = {"request": "write", "filename": filename, "data": data, "timestamp": timestamp, "clientid": self.id}
 
         self.cache[filename] = edit
 
         msg = json.dumps(edit)
         sock.sendall(msg.encode('utf-8'))
-        print(msg)
+        #print(msg)
         response = sock.recv(1024)
-        return response
+        return response.decode('utf-8')
 
-    def checkLock(self, filname):
+    def checkLock(self, filename):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((self.lockAddr, self.lockPort))
 
-        msg = json.dumps({"request": "checklock", "filename": filename})
+        msg = json.dumps({"request": "checklock", "filename": filename, "clientid": self.id})
         sock.sendall(msg.encode('utf-8'))
         response = sock.recv(1024)
         return response
 
-    def getLock(self, filname):
+    def getLock(self, filename):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((self.lockAddr, self.lockPort))
 
-        msg = json.dumps({"request": "getlock", "filename": filename})
+        msg = json.dumps({"request": "getlock", "filename": filename, "clientid": self.id})
         sock.sendall(msg.encode('utf-8'))
         response = sock.recv(1024)
         return response
@@ -138,7 +138,6 @@ if __name__ == '__main__':
     userId = input("Please Enter Username: ")
     userPassword = input("Please Enter Password: ")
     response = client.authentication(userId, userPassword)
-    print (response)
 
     while requestType != "quit":
         requestType = input("Please enter a request type eg: open - close - read - write - checklock - getlock or type quit to terminate the program: ")

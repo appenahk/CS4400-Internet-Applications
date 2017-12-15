@@ -89,7 +89,7 @@ class Worker:
 
                 if flag == True:
                         response = requests.get(blob_url, params=payload, headers=headers)
-                        file_path = num =+1
+                        file_path = num = 1
                         name = os.path.basename(__file__)
                         name = name.split('.')[0]
                         file_path = name + str(file_path) + '.py'
@@ -111,7 +111,7 @@ class Worker:
             response = requests.get('http://localhost:6790/work').json()
         print("Complexity of commit: " + str(cc_result))
         result = {"Result: ": cc_result}
-        requests.post('http://localhost:6790/result', json=result)
+        if requests.post('http://localhost:6790/result', json=result)
 
     #check if python file as radon is for python cc
     def pyFile(self, filename):

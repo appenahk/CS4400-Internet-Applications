@@ -1,4 +1,3 @@
-#!/usr/bin/python
 import socketserver
 import json
 import time
@@ -43,13 +42,22 @@ class ThreadedHandler(socketserver.BaseRequestHandler):
                     deleteLock(msg['filename'])
                     response = json.dumps({
                         "response": "unlocked"})
+
+                elif msg['clientid'] == checkFile['clientid']:
+                    print("file locked")
+                    response = json.dumps({
+                        "response": "lock owned",
+                        "filename": msg['filename'],
+                        "timestamp": fs['timestamp'],
+                        "timeout": fs['timeout']
+                    })
                 else:
                     print ("file locked")
                     response = json.dumps({
                         "response": "locked",
                         "filename": msg['filename'],
-                        "timestamp": fs['timestamp'],
-                        "timeout": fs['timeout']
+                        "timestamp": checkFile['timestamp'],
+                        "timeout": checkFile['timeout']
                     })
             else:
                 response = json.dumps({
@@ -69,6 +77,16 @@ class ThreadedHandler(socketserver.BaseRequestHandler):
                         "filename": msg['filename'],
                         "timestamp": fs['timestamp'],
                         "timeout": fs['timeout']})
+
+                elif msg['clientid'] == checkFile['clientid']:
+                    print("file locked")
+                    response = json.dumps({
+                        "response": "lock granted again",
+                        "filename": msg['filename'],
+                        "timestamp": checkFile['timestamp'],
+                        "timeout": checkFile['timeout']
+                    })
+
                 else:
                     print ("getlock: locked")
                     response = json.dumps({
